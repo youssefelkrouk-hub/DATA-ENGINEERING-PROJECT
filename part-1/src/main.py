@@ -1,13 +1,11 @@
-from util.scheduler import Scheduler
+from util.config_handler import ConfigHandler
+from util.data_transformer import DataTransformer
+
+def transform():
+    config_handler = ConfigHandler()
+    transformer = DataTransformer(config_handler)
+    transformer.transform_and_save()
 
 
-def main():
-    print("[INFO]: welcome to your Data Engineering 101 guide: \n")
-    print(" press ctrl+c  to stop the process")
-    scheduler = Scheduler()
-    scheduler.schedule_jobs()
-
-
- 
 if __name__ == "__main__":
-    main()
+    transform()

@@ -23,3 +23,6 @@ class ConfigHandler:
 
     def get_registry_file(self):
         return self.config.get("Paths", 'registry_file')
+    # after transformation of data 
+    def get_output_dir(self):
+        return self.config.get("Paths", 'output_dir')
