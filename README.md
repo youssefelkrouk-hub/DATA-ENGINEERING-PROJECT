@@ -19,8 +19,8 @@ This repo should be your guide in learning by doing modern data engineering (As 
     - > pip freeze > requirements.txt
 
 #### 2.2 Run IT
-After setting up your ENV, you only need to execute this command from root folder (you can change part-1 with the part you're at)
-- > python part-1/main.py
+After setting up your ENV, you only need to execute this command from root folder (you can change part-1 with the part you're at) after cd src command 
+- > python main.py
 
 ### 3. Src Walkthrough
 #### 3.1 Overview
@@ -93,3 +93,18 @@ Make sure you're in the root directory
 ### 7. TODO
 ensure that code is comply to python best practices
 arguments are following the pythonic way
+
+
+[Scheduler]
+        │
+        ▼
+  Every N minutes
+        │
+        ▼
+  [ApiHandler] ──► calls Mockaroo API ──► saves timestamped CSV in input/
+        │
+        ▼
+  [FileHandler] ──► scans input/ for .csv files
+        │
+        ▼
+  compares with registry.txt ──► logs new files
