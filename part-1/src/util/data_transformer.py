@@ -69,11 +69,9 @@ class DataTransformer:
     def transform_and_save(self):
         df = self._load_all_csv()
         df_clean = self._clean(df)
-
         os.makedirs(self.output_dir, exist_ok=True)
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         output_path = os.path.join(self.output_dir, f"JOBS_clean_{timestamp}.csv")
-
         df_clean.to_csv(output_path, index=False)
         print(f"Fichier nettoyé sauvegardé : {output_path} ({len(df_clean)} lignes)")
-        return output_path
+        return df_clean, output_path
