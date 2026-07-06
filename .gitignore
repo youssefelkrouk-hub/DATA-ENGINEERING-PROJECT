@@ -6,4 +6,3 @@ virtual-env/
 .DS_Store
 #ignore config.ini file
 config.ini
-part-1/input/*.csv
