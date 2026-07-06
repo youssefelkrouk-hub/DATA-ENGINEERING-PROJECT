@@ -8,8 +8,8 @@ class Scheduler:
         self.api_handler=ApiHandler()
         self.file_handler=FileHandler()
     def schedule_jobs(self):
-        schedule.every(10).seconds.do(self.api_handler.get_data_to_csv)
-        schedule.every(1).minutes.do(self.file_handler.track_new_files)
+        schedule.every(40).seconds.do(self.api_handler.get_data_to_csv)
+        schedule.every(10).minutes.do(self.file_handler.track_new_files)
 
         while True:
             schedule.run_pending()
