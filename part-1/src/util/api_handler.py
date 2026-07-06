@@ -30,4 +30,3 @@ class ApiHandler:
             print("Failed to fetch data from  API")
 
         
-

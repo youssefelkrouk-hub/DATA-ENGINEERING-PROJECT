@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from util.config_handler() import ConfigHandler
+from util.config_handler import ConfigHandler
 
 class FileHandler:
     def __init__(self):
