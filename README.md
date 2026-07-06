@@ -4,15 +4,17 @@ This repo should be your guide in learning by doing modern data engineering (As 
 
 ### 2. Getting started
 #### 2.1 Prerequisites
-1. Install python (I'm using Python 3.11.6)
+1. Install python (I'm using Python 3.13.6)
 2. Create virtual env 
     - > Install : pip install virtualenv
-    - > Create dedicated forlder for your virtual env (seperated from this project)
+    - > Create dedicated folder for your virtual env (separated from this project)
     - > Create new folder : mkdir virtual-env
-    - > Create Virtual Env insid virtual-env : python -m venv space-env
-    - > Activate Virtual Env from root folder : source virtual-env/space-env/bin/activate
-3. Install requirements.txt packages ((run from your virtual env))
-    - > pip install -r requirements.txt
+    - > Create Virtual Env inside virtual-env : python -m venv virtual-env\space-env
+    - > Activate Virtual Env from root folder (PowerShell) : virtual-env\space-env\Scripts\Activate.ps1
+    - > If activation is blocked, run once : Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+    - > (Alternative for cmd.exe) : virtual-env\space-env\Scripts\activate.bat
+3. Install requirements.txt packages (run from your virtual env and to install the packages that i use in my code)
+    - > pip install -r requirements.txt 
 4. Save requirements.txt for results reproducibility (run from part-1)
     - > pip freeze > requirements.txt
 

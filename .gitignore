@@ -1,0 +1,8 @@
+#ignore Python compiled files and directories __pycache__ folders
+__pycache__/
+#ignore virtual environment folders
+virtual-env/
+#ignore DS_Store files
+.DS_Store
+#ignore config.ini file
+config.ini
