@@ -1,6 +1,8 @@
 # Data-Engineering-101 -> PART 1 DOC
+
 ### 1. Description
-This repo should be your guide in learning by doing modern data engineering 
+This repo should be your guide in learning by doing modern data engineering
+
 ### 2. Getting started
 #### 2.1 Prerequisites
 1. Install python (I'm using Python 3.13.6)
@@ -25,18 +27,40 @@ This repo should be your guide in learning by doing modern data engineering
       ```
 
 #### 2.2 Run IT
-After setting up your ENV, you only need to execute this command from root folder (you can change part-1 with the part you're at) after cd src command 
-- > python main.py
+After setting up your ENV, run each pipeline stage individually from the `src/` folder:
 
-To run the load layer (fetch/transform must have produced a cleaned CSV in `output/` first):
-- > python load_main.py
+```bash
+cd src
+
+# Step 1 — Extract: fetch data from API and save raw CSV
+python main_fetch_save.py
+
+# Step 2 — Transform: clean and merge raw files into a curated CSV
+python main_transform.py
+
+# Step 3 — Load: insert curated CSV into PostgreSQL
+python main_load_db.py
+
+# Run the full pipeline automatically on a schedule
+python scheduler.py
+```
 
 ### 3. Src Walkthrough
 #### 3.1 Overview
-We have input and output folders represents our source and target systems
-We have src folder where we have main.py represents our pipeline entrypoint along with config and util folders
-1. config package will have all our configuration files for part 1
-2. util package will have all we need to deal with files, schedulers, etc.
+We have input and output folders representing our source and target systems.
+We have a `src` folder where we have our pipeline entry points along with `config` and `util` folders.
+
+The pipeline follows the **ETL pattern** (Extract → Transform → Load), split across dedicated entry points:
+
+| File | Role | ETL Stage |
+|---|---|---|
+| `main_fetch_save.py` | Calls the API, saves timestamped raw CSV to `input/` | **Extract** |
+| `main_transform.py` | Scans `input/`, merges new files, cleans data, saves to `output/` | **Transform** |
+| `main_load_db.py` | Picks latest CSV from `output/`, upserts into PostgreSQL | **Load** |
+| `scheduler.py` | Orchestrates the full pipeline on a time-based schedule | **Orchestrator** |
+
+1. `config` package will have all our configuration files for part 1
+2. `util` package will have all we need to deal with files, schedulers, etc.
 
 #### 3.2 Util package
 ##### 3.2.1 File Handler
@@ -104,16 +128,13 @@ For this layer, we should get data and store it in raw folder in csv formats.
 For this layer, we should check new files and combine them in one file, this just a simple use case for part-1, 
 more transformations will be introduced as we move forward.
 ##### 3.4.3 load layer
-This layer is responsible for loading the curated/cleaned CSV into PostgreSQL, and is orchestrated by `load_main.py`:
+This layer is responsible for loading the curated/cleaned CSV into PostgreSQL, and is orchestrated by `main_load_db.py`:
 1. Picks the most recently modified CSV file from the `output/` folder (the result of the curated layer)
 2. Loads it into a pandas DataFrame
 3. Connects to PostgreSQL via `DBHandler`
 4. Creates the `employees` table if it doesn't already exist
 5. Upserts the DataFrame into the table (insert new rows, update existing ones based on `id`)
 6. Closes the connection
-
-Entry point:
-- > python load_main.py
 
 ### 4. Test Walkthrough
 #### 4.1 Unit Tests
@@ -130,7 +151,7 @@ Test Cases:
     - TestApiHandler:
     - TestFileHandler:
 
-### 5. Developement ways
+### 5. Development Ways
 #### 5.1 gitignore
 1. to add files that are already tracked, execute this command first then commit your changes
 - > git rm -r --cached <file-or-folder-path> (use -r for folders)
@@ -155,11 +176,33 @@ TRUNCATE TABLE employees;
 ### 7. Database queries
 `src/main.sql` contains a collection of ready-to-use SQL queries for the `employees` table: exploration, filtering, aggregations (count by country/department, average experience by job title), sorting, and duplicate checks. Open it in pgAdmin (connected to `jobshandler_db`) to run them.
 
-### 8. TODO
-ensure that code is comply to python best practices
-arguments are following the pythonic way
+### 8. Changelog
 
+#### [Refactor] — ETL Pipeline Restructure
 
+Replaced legacy entry point files with a clean, single-responsibility ETL structure:
+
+**Removed**
+- `load_main.py` — load logic moved to `main_load_db.py`
+- `main.py` — replaced by dedicated stage entry points
+- `main1.py` — deprecated experimental entry point
+- `util/main1.py` — deprecated utility script
+
+**Added**
+- `main_fetch_save.py` — **Extract**: calls the API, saves timestamped raw CSV to `input/`
+- `main_transform.py` — **Transform**: merges new files, cleans data, saves curated CSV to `output/`
+- `main_load_db.py` — **Load**: reads latest curated CSV, upserts into PostgreSQL
+- `scheduler.py` — **Orchestrator**: triggers the full pipeline on a time-based schedule
+
+Each file now has a single, clearly named responsibility aligned with the ETL pattern. See section 3.1 for the full entry point reference table.
+
+### 9. TODO
+- Ensure that code complies with Python best practices
+- Arguments are following the Pythonic way
+
+---
+
+```
 [Scheduler]
         │
         ▼
@@ -182,3 +225,4 @@ arguments are following the pythonic way
         │
         ▼
   upserts cleaned data into `employees` table (INSERT ... ON CONFLICT DO UPDATE)
+```
