@@ -7,7 +7,7 @@ SELECT * FROM employees;
 -- Compter le nombre total d'employés
 SELECT COUNT(*) AS total_employees FROM employees;
  
--- Voir les 10 premières lignes
+-- Voir les 10 premières lignes juste pour vérifier la structure de la table
 SELECT * FROM employees LIMIT 10;
  
 -- Structure des colonnes (types, nullable...)

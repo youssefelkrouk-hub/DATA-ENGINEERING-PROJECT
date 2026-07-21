@@ -1,10 +1,10 @@
 import os
 import csv
+import time
 import requests
 from datetime import datetime
 from util.config_handler import ConfigHandler
 from util.exceptions import ApiRequestException
-
 
 class ApiHandler:
 
@@ -16,6 +16,7 @@ class ApiHandler:
     def get_data_to_csv(self):
         print("[INFO]: fetching new data using API.... ")
 
+        start_time = time.perf_counter()
         try:
             response = requests.get(self.api_url, timeout=10)
         except requests.exceptions.RequestException as e:
@@ -23,6 +24,10 @@ class ApiHandler:
             raise ApiRequestException(
                 f"Erreur réseau lors de l'appel à l'API : {e}"
             ) from e
+        finally:
+            elapsed_time = time.perf_counter() - start_time
+
+        print(f"[INFO]: appel API terminé en {elapsed_time:.3f} secondes")
 
         if response.status_code != 200:
             raise ApiRequestException(
