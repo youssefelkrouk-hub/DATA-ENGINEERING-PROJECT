@@ -1,6 +1,8 @@
 import psycopg2
 from psycopg2.extras import execute_values
 
+from util.exceptions import DBConnectionException, DBQueryException
+
 
 class DBHandler:
     def __init__(self, config_handler):
@@ -19,7 +21,18 @@ class DBHandler:
             print("Erreur d'encodage dans les paramètres de connexion :")
             for k, v in db_config.items():
                 print(f"  {k} -> {v!r}")
-            raise e
+            raise DBConnectionException(
+                "Erreur d'encodage lors de la connexion à PostgreSQL. "
+                "Vérifie que la base existe et que le message d'erreur "
+                "renvoyé par le serveur n'est pas encodé en dehors de l'UTF-8."
+            ) from e
+        except psycopg2.OperationalError as e:
+            # Regroupe les erreurs opérationnelles les plus courantes :
+            # base inexistante, mauvais identifiants, serveur injoignable...
+            raise DBConnectionException(
+                f"Impossible de se connecter à PostgreSQL "
+                f"(host={db_config.get('host')}, dbname={db_config.get('dbname')}) : {e}"
+            ) from e
 
         return self.conn
 
@@ -28,6 +41,12 @@ class DBHandler:
             self.conn.close()
 
     def create_table_if_not_exists(self):
+        if self.conn is None:
+            raise DBConnectionException(
+                "Impossible de créer la table : aucune connexion active. "
+                "Appelle connect() avant create_table_if_not_exists()."
+            )
+
         query = """
         CREATE TABLE IF NOT EXISTS employees (
             id INTEGER PRIMARY KEY,
@@ -42,14 +61,26 @@ class DBHandler:
             years_experience INTEGER
         );
         """
-        with self.conn.cursor() as cur:
-            cur.execute(query)
-        self.conn.commit()
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(query)
+            self.conn.commit()
+        except psycopg2.Error as e:
+            self.conn.rollback()
+            raise DBQueryException(
+                f"Erreur lors de la création de la table 'employees' : {e}"
+            ) from e
 
     def upsert_dataframe(self, df, table_name="employees"):
         if df.empty:
             print("Aucune donnée à charger.")
             return
+
+        if self.conn is None:
+            raise DBConnectionException(
+                "Impossible d'upserter les données : aucune connexion active. "
+                "Appelle connect() avant upsert_dataframe()."
+            )
 
         columns = list(df.columns)
         values = [tuple(row) for row in df[columns].itertuples(index=False, name=None)]
@@ -61,7 +92,16 @@ class DBHandler:
             {', '.join(f"{col} = EXCLUDED.{col}" for col in columns if col != 'id')}
         """
 
-        with self.conn.cursor() as cur:
-            execute_values(cur, insert_query, values)
-        self.conn.commit()
+        try:
+            with self.conn.cursor() as cur:
+                execute_values(cur, insert_query, values)
+            self.conn.commit()
+        except psycopg2.Error as e:
+            # En cas d'échec, on annule la transaction en cours pour ne pas
+            # laisser la connexion dans un état incohérent pour la suite.
+            self.conn.rollback()
+            raise DBQueryException(
+                f"Erreur lors de l'upsert dans '{table_name}' : {e}"
+            ) from e
+
         print(f"{len(values)} lignes upsertées dans '{table_name}'")

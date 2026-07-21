@@ -1,5 +1,6 @@
 import os
 import configparser
+from util.exceptions import InvalidValueException
 
 
 class ConfigHandler:
@@ -14,23 +15,45 @@ class ConfigHandler:
         if not result:
             raise FileNotFoundError(f"Config introuvable : {self.CONFIG_PATH}")
 
+    def _get_value(self, section, option):
+        """Centralise la lecture d'une valeur de config avec gestion d'erreurs.
+
+        Toute lecture passe par ici, pour éviter de dupliquer les mêmes
+        try/except dans chaque getter, et pour garantir qu'une valeur
+        manquante ou vide lève toujours la même exception explicite.
+        """
+        try:
+            value = self.config.get(section, option).strip()
+        except (configparser.NoSectionError, configparser.NoOptionError) as e:
+            raise InvalidValueException(
+                f"Valeur de configuration manquante : [{section}] {option} ({e})"
+            ) from e
+
+        if not value:
+            raise InvalidValueException(
+                f"Valeur de configuration vide : [{section}] {option}"
+            )
+
+        return value
+
     def get_api_url(self):
-        return self.config.get("API", 'url').strip()
+        return self._get_value("API", "url")
 
     def get_input_dir(self):
-        return self.config.get("Paths", 'input_dir').strip()
+        return self._get_value("Paths", "input_dir")
 
     def get_registry_file(self):
-        return self.config.get("Paths", 'registry_file').strip()
+        return self._get_value("Paths", "registry_file")
 
     def get_output_dir(self):
-        return self.config.get("Paths", 'output_dir').strip()
+        return self._get_value("Paths", "output_dir")
 
     def get_db_config(self):
         return {
-            "host": self.config.get("Database", "host").strip(),
-            "port": self.config.get("Database", "port").strip(),
-            "dbname": self.config.get("Database", "dbname").strip(),
-            "user": self.config.get("Database", "user").strip(),
-            "password": self.config.get("Database", "password").strip(),
+            "host": self._get_value("Database", "host"),
+            "port": self._get_value("Database", "port"),
+            "dbname": self._get_value("Database", "dbname"),
+            "user": self._get_value("Database", "user"),
+            "password": self._get_value("Database", "password"),
         }
+    

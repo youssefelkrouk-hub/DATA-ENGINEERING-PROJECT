@@ -22,7 +22,7 @@ WHERE table_name = 'employees';
  
 -- Employés d'un pays donné
 SELECT * FROM employees
-WHERE country_code = 'FR';
+WHERE country_code = 'ID';
  
 -- Employés d'une entreprise donnée
 SELECT * FROM employees

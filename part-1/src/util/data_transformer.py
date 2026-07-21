@@ -3,6 +3,8 @@ import glob
 from datetime import datetime
 import pandas as pd
 
+from util.exceptions import FileHandlingException
+
 
 class DataTransformer:
     def __init__(self, config_handler):
@@ -14,10 +16,31 @@ class DataTransformer:
         pattern = os.path.join(self.input_dir, "*.csv")
         files = glob.glob(pattern)
         if not files:
-            raise FileNotFoundError(f"Aucun fichier CSV trouvé dans {self.input_dir}")
+            raise FileHandlingException(
+                f"Aucun fichier CSV trouvé dans {self.input_dir}"
+            )
 
-        dataframes = [pd.read_csv(f) for f in files]
-        merged = pd.concat(dataframes, ignore_index=True)
+        dataframes = []
+        for f in files:
+            try:
+                dataframes.append(pd.read_csv(f))
+            except (pd.errors.ParserError, UnicodeDecodeError, OSError) as e:
+                # Un seul fichier corrompu/illisible ne doit pas arrêter tout
+                # le pipeline silencieusement : on veut une erreur explicite
+                # qui dit précisément quel fichier pose problème.
+                raise FileHandlingException(
+                    f"Impossible de lire le fichier {f} : {e}"
+                ) from e
+
+        try:
+            merged = pd.concat(dataframes, ignore_index=True)
+        except ValueError as e:
+            # Peut survenir si les fichiers ont des colonnes totalement
+            # incompatibles entre eux.
+            raise FileHandlingException(
+                f"Impossible de fusionner les fichiers CSV : {e}"
+            ) from e
+
         print(f"{len(files)} fichiers fusionnés, {len(merged)} lignes au total")
         return merged
 
@@ -57,21 +80,39 @@ class DataTransformer:
         df = df.fillna("Unknown")
 
         # 5. Types de données
-        if 'years_experience' in df.columns:
-            df['years_experience'] = pd.to_numeric(
-                df['years_experience'], errors='coerce'
-            ).fillna(0).astype(int)
-        if 'id' in df.columns:
-            df['id'] = df['id'].astype(int)
+        try:
+            if 'years_experience' in df.columns:
+                df['years_experience'] = pd.to_numeric(
+                    df['years_experience'], errors='coerce'
+                ).fillna(0).astype(int)
+            if 'id' in df.columns:
+                df['id'] = df['id'].astype(int)
+        except (ValueError, TypeError) as e:
+            raise FileHandlingException(
+                f"Erreur lors de la conversion des types de données : {e}"
+            ) from e
 
         return df.reset_index(drop=True)
 
     def transform_and_save(self):
         df = self._load_all_csv()
+
+        if df.empty:
+            raise FileHandlingException(
+                "Le DataFrame fusionné est vide, rien à transformer."
+            )
+
         df_clean = self._clean(df)
-        os.makedirs(self.output_dir, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        output_path = os.path.join(self.output_dir, f"JOBS_clean_{timestamp}.csv")
-        df_clean.to_csv(output_path, index=False)
+
+        try:
+            os.makedirs(self.output_dir, exist_ok=True)
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            output_path = os.path.join(self.output_dir, f"JOBS_clean_{timestamp}.csv")
+            df_clean.to_csv(output_path, index=False)
+        except OSError as e:
+            raise FileHandlingException(
+                f"Impossible de sauvegarder le fichier nettoyé dans {self.output_dir} : {e}"
+            ) from e
+
         print(f"Fichier nettoyé sauvegardé : {output_path} ({len(df_clean)} lignes)")
         return df_clean, output_path
