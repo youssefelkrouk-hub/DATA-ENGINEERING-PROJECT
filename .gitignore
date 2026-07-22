@@ -3,7 +3,7 @@ __pycache__/
 #ignore virtual environment folders
 virtual-env/
 #ignore config.ini file
-config.ini 
-
+config.ini
 # Cache pytest
 .pytest_cache/
+
