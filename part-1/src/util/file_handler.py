@@ -1,8 +1,6 @@
 import os
 from datetime import datetime
 from util.config_handler import ConfigHandler
-from util.exceptions import FileHandlingException, RegistryException
-
 
 class FileHandler:
     def __init__(self):
@@ -46,33 +44,11 @@ class FileHandler:
                     f"Impossible de créer le fichier registry {self.registry_file} : {e}"
                 ) from e
             return set()
-
-        try:
-            with open(self.registry_file, "r") as f:
-                lines = f.read().splitlines()
-        except OSError as e:
-            raise RegistryException(
-                f"Impossible de lire le fichier registry {self.registry_file} : {e}"
-            ) from e
-
-        try:
-            return set(line.split("\t")[0] for line in lines if line.strip())
-        except IndexError as e:
-            raise RegistryException(
-                f"Format invalide dans le fichier registry {self.registry_file} : {e}"
-            ) from e
-
-    def update_registry(self, new_files):
-        if not new_files:
-            return
-
-        try:
-            with open(self.registry_file, "a") as f:
-                for filename in new_files:
-                    f.write(
-                        filename + "\t" + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n"
-                    )
-        except OSError as e:
-            raise RegistryException(
-                f"Impossible de mettre à jour le registry {self.registry_file} : {e}"
-            ) from e
+        else:
+            with open(self.registry_file,"r") as f:
+                return set(line.split("\t")[0] for line in f.read().splitlines()) 
+            
+    def update_registry(self,new_files):
+        with open(self.registry_file,"a") as f:
+            for filename in new_files:
+                f.write(filename + "\t"+ datetime.now().strftime("%Y-%m-%d %H:%M:%S")+ "\n")

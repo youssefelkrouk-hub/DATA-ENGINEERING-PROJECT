@@ -45,6 +45,7 @@ class ApiHandler:
         try:
             with open(file_path, "w", newline="", encoding="utf-8") as csvfile:
                 csvfile.write(data)
+<<<<<<< HEAD
         except OSError as e:
             # Erreur d'écriture disque : dossier inexistant, droits insuffisants, disque plein...
             raise ApiRequestException(
@@ -52,3 +53,10 @@ class ApiHandler:
             ) from e
 
         print(f"[INFO]: data saved -> {file_path}")
+=======
+            print(f"[INFO]: data saved")
+        else:
+            print("Failed to fetch data from  API")
+
+        
+>>>>>>> origin/main
