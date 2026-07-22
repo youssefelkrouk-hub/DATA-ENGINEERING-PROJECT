@@ -4,3 +4,6 @@ __pycache__/
 virtual-env/
 #ignore config.ini file
 config.ini 
+
+# Cache pytest
+.pytest_cache/
