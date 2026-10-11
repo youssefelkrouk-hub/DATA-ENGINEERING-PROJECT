@@ -1,7 +1,7 @@
 # Data-Engineering-101 -> PART 1 DOC
 **Project architecture**
 
-![Project Architecture](img/project%20architecture.png)
+![Project Architecture](img/etl.jfif)
 
 ## 1. Description
 This repo is a hands-on guide to learning modern data engineering by building a small end-to-end ETL pipeline: fetching data from an API, transforming it, and loading it into a relational database (PostgreSQL).
