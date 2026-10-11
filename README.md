@@ -1,7 +1,7 @@
 # Data-Engineering-101 
 **Project architecture**
 
-![Project Architecture](img/project%20architecture.png)
+![Project Architecture](img/etl.jfif)
 
 
 ## 1. Description
@@ -194,3 +194,7 @@ Every N seconds/minutes
 [DBHandler] ──► upserts curated data into PostgreSQL
                 (main_load_db.py)
 ```
+
+**ETL Pipeline**
+
+![ETL Pipeline](img/ETL_.png)
